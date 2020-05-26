@@ -4,11 +4,11 @@ Created on 20200525
 @author: weililai@foxmail.com
 
     Method reference standard ISO 12241-2008
-    All units are standard international units（SI）
+    Except for temperature (Celsius), all other units are in the International System of Units.
 #1.Surface coefficient of heat transfer
     h_se = h_r + h_cv
         h_r = alpha_r*C_r
-            alpha_r = (theta_se**4 - theta_a**4)/(theta_se - theta_a)
+            alpha_r = ((theta_se+273.15)**4 - (theta_a+273.15)**4)/((theta_se+273.15) - (theta_a+273.15))
             C_r = epsilon*sigma
                 sigma = 5.67*10**-8
         h_cv = 1.32*((theta_se - theta_a)/D_e)**0.25  #For vertical pipes for laminar, free convection, inside buildings
@@ -23,7 +23,7 @@ Created on 20200525
 #3.Linear density of heat flow rate in insulation materials
     q_l = (theta_si-theta_se)/np.log(D_e/D_i)*2*pi*lamb
 #4.Thermal conductivity of insulation materials
-    lamb = k_0 + ((theta_si-273.15)/2+(theta_se-273.15)/2)*k_1 + ((theta_si-273.15)/2+(theta_se-273.15)/2)**2*k_2
+    lamb = k_0 + (theta_si/2+theta_se/2)*k_1 + (theta_si/2+theta_se/2)**2*k_2
 #5.Density of heat flow ratelinear --> Linear density of heat flow rate
     q_l=pi*D_e*q
 
@@ -37,10 +37,10 @@ from matplotlib import pyplot as plt
 #Setting
 vertical_pipes = 1 #1 means the tube is vertical,0 means the tube is horizontal
 D_i = 0.3 #Pipe diameter
-theta_si = 400+273.05 #Medium temperature 
-theta_a = 20+273.15 #Ambient temperature
+theta_si = 400 #Medium temperature 
+theta_a = 20 #Ambient temperature
 q_max = 204 #Maximum allowable density of heat flow rate
-theta_se_max = 45+273.15 #Maximum allowable surface temperature
+theta_se_max = 45 #Maximum allowable surface temperature
 epsilon = 0.25 #The blackness of galvanized steel plate, other protective materials refer to Table 2 of ISO 12241 2008
 v = 0 #Wind speed
 k_0 = 0.03 #0th-order coefficient of thermal conductivity of thermal insulation material,when the temperature is 0 ℃ (273.15 K), the thermal conductivity is k_0
@@ -52,7 +52,7 @@ def q_to_theta_se_and_D_e_and_q_l(x):
     theta_se,D_e,q_l,lamb = x[0],x[1],x[2],x[3]
     sigma = 5.67*10**-8 
     C_r = epsilon*sigma
-    alpha_r = (theta_se**4 - theta_a**4)/(theta_se - theta_a)
+    alpha_r = ((theta_se+273.15)**4 - (theta_a+273.15)**4)/((theta_se+273.15) - (theta_a+273.15))
     h_r = alpha_r*C_r
     if v == 0 :
         if vertical_pipes :
@@ -72,7 +72,7 @@ def q_to_theta_se_and_D_e_and_q_l(x):
     h_se = h_r + h_cv
     return np.array([(theta_se-theta_a)*math.pi*D_e*h_se-q_l,
                      (theta_si-theta_se)/np.log(D_e/D_i)*2*math.pi*lamb-q_l,
-                     k_0 + ((theta_si-273.15)/2+(theta_se-273.15)/2)*k_1 + ((theta_si-273.15)/2+(theta_se-273.15)/2)**2*k_2-lamb,
+                     k_0 + (theta_si/2+theta_se/2)*k_1 + (theta_si/2+theta_se/2)**2*k_2-lamb,
                      math.pi*D_e*q-q_l
                      ])
 
@@ -81,7 +81,7 @@ def theta_se_to_q_and_D_e_and_q_l(x):
     q,D_e,q_l,lamb = x[0],x[1],x[2],x[3]
     sigma = 5.67*10**-8 
     C_r = epsilon*sigma
-    alpha_r = (theta_se**4 - theta_a**4)/(theta_se - theta_a)
+    alpha_r = ((theta_se+273.15)**4 - (theta_a+273.15)**4)/((theta_se+273.15) - (theta_a+273.15))
     h_r = alpha_r*C_r
     if v == 0 :
         if vertical_pipes :
@@ -101,7 +101,7 @@ def theta_se_to_q_and_D_e_and_q_l(x):
     h_se = h_r + h_cv
     return np.array([(theta_se-theta_a)*math.pi*D_e*h_se-q_l,
                      (theta_si-theta_se)/np.log(D_e/D_i)*2*math.pi*lamb-q_l,
-                     k_0 + ((theta_si-273.15)/2+(theta_se-273.15)/2)*k_1 + ((theta_si-273.15)/2+(theta_se-273.15)/2)**2*k_2-lamb,
+                     k_0 + (theta_si/2+theta_se/2)*k_1 + (theta_si/2+theta_se/2)**2*k_2-lamb,
                      math.pi*D_e*q-q_l
                      ])
 
@@ -110,7 +110,7 @@ def D_e_to_theta_se_and_q_and_q_l(x):
     theta_se,q,q_l,lamb = x[0],x[1],x[2],x[3]
     sigma = 5.67*10**-8 
     C_r = epsilon*sigma
-    alpha_r = (theta_se**4 - theta_a**4)/(theta_se - theta_a)
+    alpha_r = ((theta_se+273.15)**4 - (theta_a+273.15)**4)/((theta_se+273.15) - (theta_a+273.15))
     h_r = alpha_r*C_r
     if v == 0 :
         if vertical_pipes :
@@ -130,7 +130,7 @@ def D_e_to_theta_se_and_q_and_q_l(x):
     h_se = h_r + h_cv
     return np.array([(theta_se-theta_a)*math.pi*D_e*h_se-q_l,
                      (theta_si-theta_se)/np.log(D_e/D_i)*2*math.pi*lamb-q_l,
-                     k_0 + ((theta_si-273.15)/2+(theta_se-273.15)/2)*k_1 + ((theta_si-273.15)/2+(theta_se-273.15)/2)**2*k_2-lamb,
+                     k_0 + (theta_si/2+theta_se/2)*k_1 + (theta_si/2+theta_se/2)**2*k_2-lamb,
                      math.pi*D_e*q-q_l
                      ])
 
@@ -138,7 +138,7 @@ def D_e_to_theta_se_and_q_and_q_l(x):
 def out_h_se():
     sigma = 5.67*10**-8 
     C_r = epsilon*sigma
-    alpha_r = (theta_se**4 - theta_a**4)/(theta_se - theta_a)
+    alpha_r = ((theta_se+273.15)**4 - (theta_a+273.15)**4)/((theta_se+273.15) - (theta_a+273.15))
     h_r = alpha_r*C_r
     if v == 0 :
         if vertical_pipes :
@@ -160,8 +160,8 @@ def out_h_se():
 
 #solve theta_se, D_e, q_l from the q_max
 q = q_max  #
-sol_root1 = root(q_to_theta_se_and_D_e_and_q_l,[320,D_i+0.20,math.pi*(D_i+0.20)*q,k_0]) 
-sol_fsolve1 = fsolve(q_to_theta_se_and_D_e_and_q_l,[320,D_i+0.20,math.pi*(D_i+0.20)*q,k_0])
+sol_root1 = root(q_to_theta_se_and_D_e_and_q_l,[50,D_i+0.20,math.pi*(D_i+0.20)*q,k_0]) 
+sol_fsolve1 = fsolve(q_to_theta_se_and_D_e_and_q_l,[50,D_i+0.20,math.pi*(D_i+0.20)*q,k_0])
 theta_se = sol_fsolve1[0]
 D_e = sol_fsolve1[1]
 q_l = sol_fsolve1[2]
