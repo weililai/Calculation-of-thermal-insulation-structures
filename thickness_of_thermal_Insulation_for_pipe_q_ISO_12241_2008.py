@@ -18,13 +18,13 @@ Created on 20200525
         h_cv = 8.1*10**-3/D_e + 3.14*(v/D_e)**0.5     #For horizontal and vertical pipes that are outside buildings for laminar airflow
         h_cv = 8.9*v**0.9/D_e**0.1                    #For horizontal and vertical pipes that are outside buildings for turbulent airflow
 
-#1.Linear density of heat flow rate between the externa surface of the insulation layer and the ambient
+#2.Linear density of heat flow rate between the externa surface of the insulation layer and the ambient
     q_l = (theta_se-theta_a)*pi*D_e*h_se
-#2.Linear density of heat flow rate in insulation materials
+#3.Linear density of heat flow rate in insulation materials
     q_l = (theta_si-theta_se)/np.log(D_e/D_i)*2*pi*lamb
-#3.Thermal conductivity of insulation materials
+#4.Thermal conductivity of insulation materials
     lamb = k_0 + ((theta_si-273.15)/2+(theta_se-273.15)/2)*k_1 + ((theta_si-273.15)/2+(theta_se-273.15)/2)**2*k_2
-#4.Density of heat flow ratelinear --> Linear density of heat flow rate
+#5.Density of heat flow ratelinear --> Linear density of heat flow rate
     q_l=pi*D_e*q
 
 """
@@ -160,8 +160,8 @@ def out_h_se():
 
 #solve theta_se, D_e, q_l from the q_max
 q = q_max  #
-sol_root1 = root(q_to_theta_se_and_D_e_and_q_l,[320,D_i+0.20,math.pi*(D_i+0.20)*q,k_0 + (theta_si/2+300/2)*k_1 + (theta_si/2+300/2)**2*k_2]) 
-sol_fsolve1 = fsolve(q_to_theta_se_and_D_e_and_q_l,[320,D_i+0.20,math.pi*(D_i+0.20)*q,k_0 + (theta_si/2+300/2)*k_1 + (theta_si/2+300/2)**2*k_2])
+sol_root1 = root(q_to_theta_se_and_D_e_and_q_l,[320,D_i+0.20,math.pi*(D_i+0.20)*q,k_0]) 
+sol_fsolve1 = fsolve(q_to_theta_se_and_D_e_and_q_l,[320,D_i+0.20,math.pi*(D_i+0.20)*q,k_0])
 theta_se = sol_fsolve1[0]
 D_e = sol_fsolve1[1]
 q_l = sol_fsolve1[2]
