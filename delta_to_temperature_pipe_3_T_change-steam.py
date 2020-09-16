@@ -141,9 +141,9 @@ print("  alpha_s = ",alpha_s(T_s,T_a,W,D_3))
 
 #末端温度，公式来自 《长输蒸汽管道的温降和压降的计算方法研究-薛永明》、《蒸汽输热管道的温降设计-赵光显》
 steam_0 = IAPWS97(P=P_0, T=T_0+273.15)  #入口蒸汽物性
-H_0 = steam_0.h #入口蒸汽比焓
-deltaH = q*l*K/((1000/3600)*G)/1000 #出入口蒸汽焓变,国际单位制公式：deltaH=q*l*K*G
-H_f = H_0 - deltaH #出口蒸汽比焓
+H_0 = steam_0.h #入口蒸汽比焓(kJ/kg)
+deltaH = q*l*K/((1000/3600)*G)/1000 #出入口蒸汽焓变,国际单位制公式：deltaH=q*l*K/G
+H_f = H_0 - deltaH #出口蒸汽比焓(kJ/kg)
 steam_f = IAPWS97(P=P_f, h=H_f) #出口蒸汽物性
 T_f = steam_f.T-273.15 #出口蒸汽温度
 print("      H_0 = ",H_0)
