@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 20200814
+Created on 20200919
     从各保温层厚度计算表面温度和界面温度
 @author: weililai@foxmail.com
 
@@ -34,28 +34,36 @@ from matplotlib import pyplot as plt
 from iapws import IAPWS97
 
 #设定（除温度单位为摄氏度外，其他单位都按SI国际单位制）
-D_0 = 0.377 #管径
-l   = 1500 #管长
-T_0 = 530 #介质温度（近似为管壁温度）
-P_0 = 4  #入口压力（MPa）
-P_f = 3.8 #出口压力（MPa）
-G = 50 #质量流量（T/h）
+D_0 = 0.325 #管外径
+D_i = 0.300 #管内径
+l   = 5100 #管长
+l_z = 100  #局部阻力当量长度
+K_p = 0.0002 #管道内壁绝对粗糙度（m）
+pipe_number = 50 #计算温降时，管道分段数量(多分段使计算更准确)
+T_0 = 285.4 #入口介质温度（近似为管壁温度）
+P_0 = 1.13  #入口压力（MPa）
+G = 20 #质量流量（T/h）
 K = 1.2 #支架修正系数
 T_a = 25 #环境温度
 T_f_assump = 480 #预计出口温度
 T_a = 20 #环境温度
-T_1_assump = 400 #第一个界面温度猜测值
-T_2_assump = 300 #第二个界面温度猜测值
+T_1_assump = 200 #第一个界面温度猜测值
+T_2_assump = 100 #第二个界面温度猜测值
 T_s_assump = 50 #表面温度猜测值
 Q_assump = 236 #GB50264-2013附录B要求500摄氏度管道的允许热损（W/m2）
 epsilon = 0.25 #镀锌钢板的黑度，其他外护层材料参考GB50264-2013的5.8.9
-W = 1 #风速
-material_1 = 8 #指定内层材料
+W = 2 #风速
+material_1 = 2 #指定内层材料
 material_2 = 5 #指定中层材料
 material_3 = 1 #指定外层材料
-delta_1 = 0.04 #内层厚度
-delta_2 = 0.06 #中层厚度
-delta_3 = 0.06 #外层厚度
+delta_1 = 0.12 #内层厚度
+delta_2 = 0.000001 #中层厚度
+delta_3 = 0.000001 #外层厚度
+
+delta = delta_1 + delta_2 + delta_2
+D_1 = D_0 + 2*delta_1
+D_2 = D_0 + 2*(delta_1 + delta_2)
+D_3 = D_0 + 2*delta
 
 #通过指定材料确定该材料的导热系数，参照标准《GB50264-2013》附录A 常用绝热材料性能 ,下面第8、9种为CAS产品
 def lamb(x,T1,T2) :
@@ -111,8 +119,27 @@ def GB50264_D_to_T_s(x):
                      ])
 
 
+#传热方程组求解，由T_0求解 q 。 （不同管段内介质温度有差异，所以热损也有差异）
+def D_to_q(T):
+    global T_0 #声明为全局变量，因为本函数需要引用“GB50264_D_to_T_s”
+    T_0 = T
+    sol_root3 = root(GB50264_D_to_T_s,[math.pi*D_3*Q_assump,T_1_assump,T_2_assump,T_s_assump]) 
+    sol_fsolve3 = fsolve(GB50264_D_to_T_s,[math.pi*D_3*Q_assump,T_1_assump,T_2_assump,T_s_assump])
+    q = sol_fsolve3[0]
+    Q = q/(math.pi*D_3)
+    T_1 = sol_fsolve3[1]
+    T_2 = sol_fsolve3[2]
+    T_s = sol_fsolve3[3]
+    return q,T_s
 
-#传热方程组求解，由D_1、D_2求解 q、T_1、T_s
+
+#压降计算函数,单位为MPa，公式参考：《工业长距离输送蒸汽管道温降压降计算_张伟》
+def deltaP(L,D,K_p,rho,v): #压降是管段长度(管段长度+局部阻力当量长度)、管内径、管道内壁绝对粗糙度、介质密度、介质流速的函数
+    lambR = 0.11*(K_p/D)**0.25 #摩擦阻力系数的希弗林公式
+    return 1.15*lambR*L/D*(rho*v**2)/2*10**-6
+
+
+#“入口附近管道保温结构”的传热方程组求解，由D_1、D_2求解 q、T_1、T_s
 delta = delta_1 + delta_2 + delta_2
 D_1 = D_0 + 2*delta_1
 D_2 = D_0 + 2*(delta_1 + delta_2)
@@ -140,14 +167,34 @@ print("      T_2 = ",T_2)
 print("      T_s = ",T_s)
 print("  alpha_s = ",alpha_s(T_s,T_a,W,D_3))
 
-#末端温度，公式来自 《长输蒸汽管道的温降和压降的计算方法研究-薛永明》、《蒸汽输热管道的温降设计-赵光显》
-steam_0 = IAPWS97(P=P_0, T=T_0+273.15)  #入口蒸汽物性
-H_0 = steam_0.h #入口蒸汽比焓(kJ/kg)
-deltaH = q*l*K/((1000/3600)*G)/1000 #出入口蒸汽焓变,国际单位制公式：deltaH=q*l*K/G
-H_f = H_0 - deltaH #出口蒸汽比焓(kJ/kg)
-steam_f = IAPWS97(P=P_f, h=H_f) #出口蒸汽物性
-T_f = steam_f.T-273.15 #出口蒸汽温度
-print("      H_0 = ",H_0)
-print("   deltaH = ",deltaH)
+
+#末端温度，公式来自 《长输蒸汽管道的温降和压降的计算方法研究-薛永明》、《蒸汽输热管道的温降设计-赵光显》、《工业长距离输送蒸汽管道温降压降计算_张伟》
+i = 0 #用于分段计算压降、温降的循环变量，可以当作管段标号（标号从0开始）
+H_sec      = np.zeros(pipe_number+1) #定义变量来储存各管段入口蒸汽比焓
+deltaH_sec = np.zeros(pipe_number+1) #定义变量来储存各管段蒸汽焓变
+P_sec      = np.zeros(pipe_number+1) #定义变量来储存各管段入口蒸汽压力
+T_sec      = np.zeros(pipe_number+1) #定义变量来储存各管段入口蒸汽温度
+rho_sec    = np.zeros(pipe_number+1) #定义变量来储存各管段入口蒸汽密度
+q_sec      = np.zeros(pipe_number+1) #定义变量来储存各管段热损（W/m）
+T_s_sec      = np.zeros(pipe_number+1) #定义变量来储存各管段表面温度
+steam    = IAPWS97(P=P_0, T=T_0+273.15)  #入口蒸汽物性，由入口蒸汽压力及温度来确定
+while i < pipe_number :
+    H_sec[i]       = steam.h #第i段入口蒸汽比焓(kJ/kg)
+    T_sec[i]       = steam.T-273.15 #第i段入口蒸汽温度
+    P_sec[i]       = steam.P #第i段入口蒸汽压力
+    rho_sec[i]     = steam.rho #第i段入口蒸汽密度
+    q_sec[i]       = D_to_q(T_sec[i])[0] #第i段热损（W/m）
+    T_s_sec[i]     = D_to_q(T_sec[i])[1] #第i段表面温度
+    deltaH_sec[i]  = q_sec[i]*(l/pipe_number)*K/((1000/3600)*G)/1000 #第i段出入口蒸汽焓变,国际单位制公式：deltaH=q*l*K/G
+    H_sec[i+1]     = H_sec[i] - deltaH_sec[i] #第i+1段入口蒸汽比焓(kJ/kg)
+    P_sec[i+1]     = P_sec[i] - deltaP((l+l_z)/pipe_number,D_i,K_p,rho_sec[i],G*1000/3600/rho_sec[i]/(math.pi*D_i**2/4)) #第i+1段入口蒸汽压力(MPa)
+    steam          = IAPWS97(P=P_sec[i+1], h=H_sec[i+1]) #第i+1段入口蒸汽物性
+    T_sec[i+1]     = steam.T-273.15 #第i+1段入口蒸汽温度
+    H_f            = H_sec[i+1] #出口蒸汽比焓
+    T_f            = T_sec[i+1] #出口蒸汽温度
+    P_f            = P_sec[i+1] #出口蒸汽压力
+    i = i+1
+print("      H_0 = ",H_sec[0])
 print("      H_f = ",H_f)
 print("      T_f = ",T_f)
+print("      P_f = ",P_f)
