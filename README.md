@@ -33,8 +33,10 @@ temperature_of_an_compound_insulated_pipe_3.py.
 ### ④类似的平壁面保温计算工具（文件名中带“wall”的脚本）
 ## 参考文献：
 GB50264-2013《工业设备及管道绝热工程设计规范》  
+GB/T34336-2017《纳米孔气凝胶复合绝热制品》  
 Fundamentals of Heat and Mass Transfer，Incropera 著，第7版  
 ISO 12241 Thermal insulation for building equipment and industrial installations-Calculation rules  
 The International Association for the Properties of Water and Steam (IAPWS-IF97)  
 长输蒸汽管道的温降和压降的计算方法研究_薛永明  
 蒸汽输热管道的温降设计_赵光显  
+工业长距离输送蒸汽管道温降压降计算_张伟  
