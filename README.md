@@ -15,8 +15,11 @@ delta_to_temperature_pipe_3.py.
 ### ②设定管道保温材料、保温厚度及管道长度，保温性能计算（这里保温性能主要包括：表面温度、界面温度、热损、蒸汽温降，是通过求解传热方程组进行计算），并支持多层不同材料复合保温计算：
 delta_to_temperature_pipe_1_T_change-steam.py;  
 delta_to_temperature_pipe_2_T_change-steam.py;  
-delta_to_temperature_pipe_3_T_change-steam.py.  
-（脚本文件名中的数字表示参与复合的材料种数，该项功能需已安装python库iapws用于解决水蒸气物性计算问题）  
+delta_to_temperature_pipe_3_T_change-steam.py;
+delta_to_temperature_pipe_1_T_change-steam-section.py;  
+delta_to_temperature_pipe_2_T_change-steam-section.py;  
+delta_to_temperature_pipe_3_T_change-steam-section.py;
+（脚本文件名中的数字表示参与复合的材料种数，文件名带“section”的脚本使用分段计算的方法来提升蒸汽温降的计算精度，本组脚本都需安装python库iapws用于解决水蒸气物性计算问题）  
 ### ③给定保温外表面温度及界面温度要求下，保温层厚度计算（是通过求解传热方程组进行计算），并支持多层不同材料复合保温计算：
 temperature_to_delta_of_pipe_1.py;  
 temperature_to_delta_of_pipe_2.py;  
